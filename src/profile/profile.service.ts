@@ -36,6 +36,12 @@ export class ProfileService {
     return profiles.map((profile) => profile.id);
   }
 
+  findSome(ids: number[]): Promise<Profile[]> {
+    return this.profileRepository.query(
+      `SELECT * FROM profile WHERE id IN (${ids.join(', ')})`,
+    );
+  }
+
   findOne(id: number): Promise<Profile> {
     return this.profileRepository.findOneBy({ id });
   }
