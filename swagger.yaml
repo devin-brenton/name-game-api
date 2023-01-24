@@ -1,0 +1,210 @@
+openapi: 3.0.3
+info:
+  title: Name Game API
+  description: |-
+    Name Game API
+  version: 1.0.0
+
+paths:
+  /rounds:
+    post:
+      summary: Create new round of Name Game
+      operationId: createRound
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                gameType:
+                  type: string
+                  enum:
+                    - practice
+                    - timed
+                  example: practice
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Round'
+  /rounds/{roundId}:
+    get:
+      summary: Get Round by Id
+      operationId: getRoundById
+      parameters:
+        - name: roundId
+          in: path
+          description: Id of round to return
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Round'
+
+  /rounds/{roundId}/questions:
+    parameters:
+      - name: roundId
+        in: path
+        description: Id of round
+        required: true
+        schema:
+          type: integer
+    post:
+      summary: Create new question for round
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+        '422':
+          description: Cannot create question
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Cannot create question for completed round'
+  /rounds/{roundId}/questions/{questionId}:
+    parameters:
+      - name: roundId
+        in: path
+        description: Id of round
+        required: true
+        schema:
+          type: integer
+      - name: questionId
+        in: path
+        description: Id of question
+        required: true
+        schema:
+          type: integer
+    patch:
+      summary: Update question answer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selectedIndex:
+                  type: integer
+                  example: 2
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Successfully submitted answer
+                  isCorrect:
+                    type: boolean
+                    example: true
+  /rounds/{roundId}/results:
+    parameters:
+      - name: roundId
+        in: path
+        description: Id of round
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Retrieve round results
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoundResults'
+        '422':
+          description: Results not available
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Cannot retrieve results for active round'
+components:
+  schemas:
+    Round:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: string
+          example: dd3daefe-c631-42cd-b05c-bd5bf2cb8edb
+        gameType:
+          type: string
+          enum:
+            - Practice
+            - Timed
+          example: Practice
+        completed:
+          type: boolean
+          example: false
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+        roundId:
+          type: integer
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+        answerId:
+          type: integer
+        selectedId:
+          type: integer
+          description: id of selected profile
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        headshotUrl:
+          type: string
+    RoundResults:
+      type: object
+      properties:
+        totalQuestions:
+          type: integer
+          example: 5
+        correct:
+          type: integer
+          example: 3
+        correctPercent:
+          type: number
+          example: 60.0
+        wrongPercent:
+          type: number
+          example: 40.0
+        averageSelectionTime:
+          type: number
+          description: average time to submit answer in seconds
+          example: 5.6
